@@ -1,47 +1,67 @@
 import pygame
 import sys
+import random
 
-# 初期化
 pygame.init()
-
-# 画面サイズ
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Block Breaking Game")
-
-# FPS制御用クロック
 clock = pygame.time.Clock()
 
 # パドルの設定
-PADDLE_WIDTH = 100
-PADDLE_HEIGHT = 15
+paddle = pygame.Rect(400, 550, 100, 20)
 PADDLE_COLOR = (0, 255, 255)
 paddle_speed = 7
-paddle = pygame.Rect((WIDTH - PADDLE_WIDTH) // 2, HEIGHT - 40, PADDLE_WIDTH, PADDLE_HEIGHT)
 
-# メインループ
+# ボールの設定
+BALL_RADIUS = 15
+ball = pygame.Rect(400, 400, BALL_RADIUS * 2, BALL_RADIUS * 2)
+ball_speed_x = random.choice([-4, 4])
+ball_speed_y = -5
+BALL_COLOR = (255, 255, 255)
+
+# 2. ゲームステージ処理
+def gamestage():
+    global ball_speed_x, ball_speed_y
+
+    # 画面の初期化
+    screen.fill(pygame.Color("BLACK"))
+
+    # キー入力でパドルを移動
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and paddle.left > 0:
+        paddle.x -= paddle_speed
+    if keys[pygame.K_RIGHT] and paddle.right < 800:
+        paddle.x += paddle_speed
+
+    # パドル描画
+    pygame.draw.rect(screen, PADDLE_COLOR, paddle)
+
+    # 壁反射処理
+    if ball.left <= 0 or ball.right >= 800:
+        ball_speed_x *= -1
+    if ball.top <= 0:
+        ball_speed_y *= -1
+
+    # パドルとの衝突処理
+    if paddle.colliderect(ball):
+        ball_speed_y = -abs(ball_speed_y)
+        ball_speed_x = (ball.centerx - paddle.centerx) / 5 
+
+    # ボールの移動
+    ball.x += int(ball_speed_x)
+    ball.y += int(ball_speed_y)
+
+    # ボールを描画
+    pygame.draw.ellipse(screen, BALL_COLOR, ball)
+
+# 3. メインループ
 while True:
-    # イベント処理
+    gamestage()  # 1フレーム分のゲーム処理
+    pygame.display.update()  # 画面表示
+    clock.tick(60)  # FPS制御
+
+    # 終了イベント処理
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
-    # キー入力取得
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and paddle.left > 0:
-        paddle.x -= paddle_speed
-    if keys[pygame.K_RIGHT] and paddle.right < WIDTH:
-        paddle.x += paddle_speed
-
-    # 描画
-    screen.fill((0, 0, 0))  # 背景を黒に
-    pygame.draw.rect(screen, PADDLE_COLOR, paddle)  # パドル描画
-
-    # 画面更新
-    pygame.display.flip()
-
-    # FPS制御
-    clock.tick(60)
-
-
