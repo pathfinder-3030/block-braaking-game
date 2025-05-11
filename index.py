@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+from ui import drawGameOver
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
@@ -19,12 +20,19 @@ ball_speed_x = random.choice([-4, 4])
 ball_speed_y = -5
 BALL_COLOR = (255, 255, 255)
 
-# 2. ゲームステージ処理
-def gamestage():
-    global ball_speed_x, ball_speed_y
+# ゲーム状態
+is_game_over = False
+
+# ゲームステージ処理
+def gameStage():
+    global ball_speed_x, ball_speed_y, is_game_over
 
     # 画面の初期化
     screen.fill(pygame.Color("BLACK"))
+
+    if is_game_over:
+        drawGameOver(screen)
+        return
 
     # キー入力でパドルを移動
     keys = pygame.key.get_pressed()
@@ -51,16 +59,19 @@ def gamestage():
     ball.x += int(ball_speed_x)
     ball.y += int(ball_speed_y)
 
+    # 画面下に落ちたらゲームオーバー
+    if ball.bottom > 600:
+        is_game_over = True
+
     # ボールを描画
     pygame.draw.ellipse(screen, BALL_COLOR, ball)
 
-# 3. メインループ
+# メインループ
 while True:
-    gamestage()  # 1フレーム分のゲーム処理
-    pygame.display.update()  # 画面表示
-    clock.tick(60)  # FPS制御
+    gameStage()
+    pygame.display.update()
+    clock.tick(60)
 
-    # 終了イベント処理
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
