@@ -1,11 +1,11 @@
 import pygame
 import sys
 import random
-from ui import drawGameOver
+from ui import drawGameOver, drawGameStart
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("Block Breaking Game")
+pygame.display.set_caption("ブロック崩し")
 clock = pygame.time.Clock()
 
 # パドルの設定
@@ -20,19 +20,14 @@ ball_speed_x = random.choice([-4, 4])
 ball_speed_y = -5
 BALL_COLOR = (255, 255, 255)
 
-# ゲーム状態
+page = 1
 is_game_over = False
 
 # ゲームステージ処理
 def gameStage():
-    global ball_speed_x, ball_speed_y, is_game_over
+    global ball_speed_x, ball_speed_y, is_game_over, page
 
-    # 画面の初期化
     screen.fill(pygame.Color("BLACK"))
-
-    if is_game_over:
-        drawGameOver(screen)
-        return
 
     # キー入力でパドルを移動
     keys = pygame.key.get_pressed()
@@ -59,16 +54,25 @@ def gameStage():
     ball.x += int(ball_speed_x)
     ball.y += int(ball_speed_y)
 
-    # 画面下に落ちたらゲームオーバー
+    # 画面下に落ちたらゲームオーバーへ遷移
     if ball.bottom > 600:
         is_game_over = True
+        page = 3
 
-    # ボールを描画
+    # ボール描画
     pygame.draw.ellipse(screen, BALL_COLOR, ball)
 
 # メインループ
 while True:
-    gameStage()
+    if page == 1:
+        screen.fill(pygame.Color("BLACK"))
+        drawGameStart(screen)
+    elif page == 2:
+        gameStage()
+    elif page == 3:
+        screen.fill(pygame.Color("BLACK"))
+        drawGameOver(screen)
+
     pygame.display.update()
     clock.tick(60)
 
@@ -76,3 +80,13 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+
+        # スペースキーでゲーム開始
+        if page == 1 and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            paddle.x = 400
+            ball.x = 400
+            ball.y = 400
+            ball_speed_x = random.choice([-4, 4])
+            ball_speed_y = -5
+            is_game_over = False
+            page = 2
