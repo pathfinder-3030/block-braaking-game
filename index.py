@@ -20,16 +20,28 @@ ball_speed_x = random.choice([-4, 4])
 ball_speed_y = -5
 BALL_COLOR = (255, 255, 255)
 
+# ゲーム状態
 page = 1
 is_game_over = False
 
-# ゲームステージ処理
+# 共通のゲーム初期化処理
+def resetGame():
+    global paddle, ball, ball_speed_x, ball_speed_y, is_game_over, page
+    paddle.x = 400
+    ball.x = 400
+    ball.y = 400
+    ball_speed_x = random.choice([-4, 4])
+    ball_speed_y = -5
+    is_game_over = False
+    page = 2
+
+# ゲーム中の処理
 def gameStage():
     global ball_speed_x, ball_speed_y, is_game_over, page
 
     screen.fill(pygame.Color("BLACK"))
 
-    # キー入力でパドルを移動
+    # パドル操作
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] and paddle.left > 0:
         paddle.x -= paddle_speed
@@ -39,7 +51,7 @@ def gameStage():
     # パドル描画
     pygame.draw.rect(screen, PADDLE_COLOR, paddle)
 
-    # 壁反射処理
+    # ボール反射処理
     if ball.left <= 0 or ball.right >= 800:
         ball_speed_x *= -1
     if ball.top <= 0:
@@ -48,13 +60,13 @@ def gameStage():
     # パドルとの衝突処理
     if paddle.colliderect(ball):
         ball_speed_y = -abs(ball_speed_y)
-        ball_speed_x = (ball.centerx - paddle.centerx) / 5 
+        ball_speed_x = (ball.centerx - paddle.centerx) / 5
 
-    # ボールの移動
+    # ボール移動
     ball.x += int(ball_speed_x)
     ball.y += int(ball_speed_y)
 
-    # 画面下に落ちたらゲームオーバーへ遷移
+    # ゲームオーバー判定
     if ball.bottom > 600:
         is_game_over = True
         page = 3
@@ -81,12 +93,10 @@ while True:
             pygame.quit()
             sys.exit()
 
-        # スペースキーでゲーム開始
-        if page == 1 and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            paddle.x = 400
-            ball.x = 400
-            ball.y = 400
-            ball_speed_x = random.choice([-4, 4])
-            ball_speed_y = -5
-            is_game_over = False
-            page = 2
+        # タイトル画面：任意キーでゲーム開始
+        if page == 1 and event.type == pygame.KEYDOWN:
+            resetGame()
+
+        # ゲームオーバー画面：任意キーで再スタート
+        if page == 3 and event.type == pygame.KEYDOWN:
+            resetGame()
